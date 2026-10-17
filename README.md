@@ -1,63 +1,75 @@
-# word-sprite-quest · 单词精灵闯关
+<div align="right">
 
-> 一句话简介：Cocos Creator 3.8 微信小游戏——休闲外壳 + 分级词汇训练内核 + 萌宠养成长线闭环。18 种玩法、5 档模式、240 关，多 AI 协同契约化开发。
+**[English](README.md)** · [简体中文](README.zh-CN.md)
 
-## 一、这是一个什么样的游戏
+</div>
 
-表面上是休闲闯关小游戏，内核是分级词汇训练。
+# word-sprite-quest
+
+A WeChat mini-game built in Cocos Creator 3.8 — casual shell, graded vocabulary trainer inside, pet progression on top.
+
+18 play modes · 5 difficulty tiers · 240 levels
+
+<sub>TypeScript · Cocos Creator 3.8.8</sub>
+
+---
+
+## What it is
+
+A casual game on the surface, a vocabulary trainer underneath.
 
 ```
-休闲外壳（18 种玩法）  +  训练内核（5 档模式 / 240 关）  +  长线闭环（萌宠养成 + 元留存层）
+casual shell (18 modes)  +  training core (5 tiers / 240 levels)  +  long-term loop (pet + meta retention)
 ```
 
-### 5 档模式
+### Five modes
 
-| 模式 | 定位 | 体力消耗 |
+| Mode | Purpose | Stamina cost |
 |---|---|---|
-| `study` | 系统学习 | 有 |
-| `hybrid` | 学练混合 | 有 |
-| `casual` | 娱乐向 | **0** |
-| `arcade` | 街机纯玩（15 关） | **0** |
-| `challenge` | 挑战 | 有 |
+| `study` | structured learning | yes |
+| `hybrid` | learn and play mixed | yes |
+| `casual` | casual play | **0** |
+| `arcade` | arcade-only, 15 levels | **0** |
+| `challenge` | challenge run | yes |
 
-娱乐向玩法不该被体力卡住——这是刻意的设计取舍。
+Casual modes cost nothing on purpose — a mode you play for fun should not be gated by stamina.
 
-### 18 种玩法
+### Eighteen play modes
 
-Ball / Runner / Idle 等基础玩法 + 15 种题型化变体，全部实现 `onQuestionStart` / `onAnswer` / `onResult` 三个抽象方法。
+Ball, Runner and Idle as base mechanics, plus fifteen question-shaped variants. Every mode implements the same three hooks: `onQuestionStart`, `onAnswer`, `onResult`.
 
-## 二、多 AI 协同是怎么做的
+## How the multi-AI collaboration worked
 
-这是这个项目最有意思的部分——三个 AI 各管一块，靠**契约驱动**保证不打架。
+Three AI agents worked on separate parts of this project. Contracts are what kept them from colliding.
 
-### 契约先行
+### Contract first
 
-`docs/CONTRACT.md` 冻结了所有跨模块接口：
+`docs/CONTRACT.md` freezes every cross-module interface:
 
-- `BaseLevel` 抽象方法与通用方法
-- `WordData` 的 12 个字段
-- 命名规范（全小写 + 下划线，文件除外）
-- 双平台隔离（微信 / 抖音）
-- **版本号冻结**：改契约必须升版本号，不能悄悄改
+- `BaseLevel` abstract and shared methods
+- The twelve fields of `WordData`
+- Naming rules (lowercase with underscores, file names excepted)
+- Dual-platform isolation (WeChat / Douyin)
+- **Version freezing** — changing the contract requires a version bump, never a silent edit
 
-各个 AI 的产物不能越过契约边界。比如 Trae 负责的配置生成器，输出必须符合 `schema_v1_3.js` 定义的字段结构。
+No agent's output may cross a contract boundary. The config generator, for example, must emit field structures that `schema_v1_3.js` defines.
 
-### 把「产品意图」写成可自动验证的断言
+### Turning product intent into assertions
 
-`build.js` 里有这么一条检查：
+`build.js` contains this check:
 
 ```js
 addCheck('wordCount=0（词仅作皮肤）',
   levels.every(l => l.wordCount === 0), '合规');
 ```
 
-这验的**不是技术约束**，是产品设计意图——街机关卡里的单词只作视觉皮肤，不考记忆。写成断言之后，这条设计就不会在迭代中被悄悄改掉。
+This asserts **product design**, not a technical constraint — arcade levels use words purely as visual skin, never as a memory test. Once it is an assertion, that design cannot be quietly dropped in a later iteration.
 
-同理还有 R9 检查：验证 `pet_config` 里 `coin.sources` 是否包含 `arcade`，即「街机产出的资源确实汇入了统一资源池」。
+The same applies to the R9 check: it verifies that `pet_config` lists `arcade` in `coin.sources`, i.e. that arcade output really does flow into the shared resource pool.
 
-### 商业伦理写进配置
+### Business ethics written into config
 
-契约里写着「**禁止**体力不足即锁死入口、必须付费才能继续」，`config/stamina_config.json` 把它完整落地：
+The contract states that gating play behind stamina and demanding payment is forbidden. `tooling/config/stamina_config.json` carries that through:
 
 ```json
 {
@@ -70,58 +82,56 @@ addCheck('wordCount=0（词仅作皮肤）',
 }
 ```
 
-最后那个 `redLine` 文本字段看着像形式主义，但 `validate_meta.js` 专门检查它是否存在——**这是唯一能自动验证「这条约束还被记得」的手段**。
+That `redLine` string looks ceremonial until you notice `validate_meta.js` checks that it exists. It is the only automated way to verify the constraint is still remembered.
 
-## 三、文件结构
+## Layout
 
 ```
 word-sprite-quest/
-├── README.md
-├── docs/
-│   └── CONTRACT.md              # 契约（接口冻结）
-├── tooling/                     # 工具链（原独立仓库，已合并）
-│   ├── schema_v1_3.js           # 唯一事实来源（被四个脚本共用）
-│   ├── build.js                 # 发布构建门禁（14 个检查模块）
-│   ├── validate_meta.js         # 元留存层校验（43 项检查）
-│   ├── validate_levels.js       # 关卡校验
-│   ├── check_gameplay.js        # 玩法实现检查
-│   └── config/                  # v1.3 配置
+├── docs/CONTRACT.md             interfaces, frozen
+├── tooling/                     merged from two former repos
+│   ├── schema_v1_3.js           single source of truth, shared by four scripts
+│   ├── build.js                 release gate, 14 check modules
+│   ├── validate_meta.js         meta-retention checks, 43 assertions
+│   ├── validate_levels.js
+│   ├── check_gameplay.js
+│   └── config/
 │       ├── stamina_config.json
 │       ├── props_config.json
 │       ├── daily_tasks.json
 │       ├── arcade_levels.json
 │       └── pet_config_v1_3.json
-├── assets/
-│   ├── scripts/                 # 玩法与核心逻辑
-│   └── resources/
-└── （美术资源未上传，见下方说明）
+├── assets/scripts/              gameplay and core logic
+└── assets/resources/
 ```
 
-## 四、构建检查覆盖
+## Build checks
 
-`build.js` 的 14 个检查模块，对应契约里的红线：
+`build.js` runs 14 check modules against the contract's red lines:
 
-| 检查 | 内容 |
+| Check | Covers |
 |---|---|
-| R5 | `image_tag` 命名规则 |
-| R6 | 包体大小 + 跨分包引用 |
-| R7 | 双平台隔离 |
-| R8 | mode 合法性 |
-| R9 | ResourcePool 资源联动 |
-| R10 | 体力兜底（红线） |
+| R5 | `image_tag` naming |
+| R6 | bundle size and cross-bundle references |
+| R7 | dual-platform isolation |
+| R8 | valid `mode` values |
+| R9 | ResourcePool linkage |
+| R10 | stamina floor (red line) |
 
-`npm run check` 一次跑完。
+```bash
+npm run check
+```
 
-## 五、说明
+## Note on assets
 
-**美术资源未上传。** 工程包含 2200+ 张 PNG 纹理（约 300 MB），超出仓库合理范围。源码与配置完整，美术资源需自行补齐，路径见 `assets/resources/` 结构。
+Art is not included. The project holds 2,200+ PNG textures (about 300 MB), beyond what belongs in a repository. Source and configuration are complete; art paths follow the structure under `assets/resources/`.
 
-**构建产物已排除**：`build/`、`library/`、`temp/`、`local/`、`profiles/`。
+Build output is excluded: `build/`, `library/`, `temp/`, `local/`, `profiles/`.
 
-## 六、相关
+## Related
 
-- [个人主页](https://github.com/YGtemple) —— 全部项目导航
+- [Profile](https://github.com/YGtemple) — all projects
 
-## 许可证
+## License
 
-MIT License
+MIT

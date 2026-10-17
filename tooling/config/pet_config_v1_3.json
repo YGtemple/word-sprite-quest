@@ -1,0 +1,76 @@
+{
+  "contractVersion": "v1.3",
+  "description": "宠物养成配置 — 5 阶段进化 + 14 皮肤 + 元留存层奖励挂钩（CONTRACT v1.3 §5 萌宠养成元系统 + §11 元留存层）",
+  "stages": [
+    {
+      "stage": 1,
+      "name": "幼灵",
+      "nameEn": "spiritling",
+      "unlockCondition": "默认解锁",
+      "spineSkin": "stage1_spiritling",
+      "description": "初生的紫色精灵，圆润可爱"
+    },
+    {
+      "stage": 2,
+      "name": "成长体",
+      "nameEn": "growth",
+      "unlockCondition": "通关第2章",
+      "spineSkin": "stage2_growth",
+      "description": "体型增大，开始展现个性"
+    },
+    {
+      "stage": 3,
+      "name": "觉醒体",
+      "nameEn": "awakened",
+      "unlockCondition": "通关第4章",
+      "spineSkin": "stage3_awakened",
+      "description": "觉醒力量，光芒环绕"
+    },
+    {
+      "stage": 4,
+      "name": "超灵体",
+      "nameEn": "transcendent",
+      "unlockCondition": "通关第6章",
+      "spineSkin": "stage4_transcendent",
+      "description": "超越凡灵，气场强大"
+    },
+    {
+      "stage": 5,
+      "name": "终极体",
+      "nameEn": "ultimate",
+      "unlockCondition": "通关第8章",
+      "spineSkin": "stage5_ultimate",
+      "description": "终极形态，璀璨夺目"
+    }
+  ],
+  "skins": [
+    { "id": 1,  "name": "紫色精灵（默认）", "type": "basic",   "unlockCondition": "默认解锁",       "spineSkin": "skin_default" },
+    { "id": 2,  "name": "森林精灵",         "type": "chapter", "unlockCondition": "通关第1章大Boss", "spineSkin": "skin_ch1_forest" },
+    { "id": 3,  "name": "学院精灵",         "type": "chapter", "unlockCondition": "通关第2章大Boss", "spineSkin": "skin_ch2_campus" }
+  ],
+  "metaRetention": {
+    "description": "元留存层挂钩（CONTRACT v1.3 §11）——把养成系统与体力/道具/任务/排行打通",
+    "coinSources": ["campaign", "arcade", "daily_task", "login_calendar", "leaderboard"],
+    "coinSinks": ["petUpgrade", "skinUnlock", "propPurchase"],
+    "staminaSources": ["daily_login", "ad_reward", "level_up", "pet_interact", "consecutive_clear", "friend_gift"],
+    "propSources": ["level_clear", "daily_task", "event", "pet_interact"],
+    "crossLinks": [
+      {
+        "from": "arcade",
+        "to": "coin",
+        "description": "街机产出金币，汇入统一资源池（R9）"
+      },
+      {
+        "from": "pet_interact",
+        "to": "stamina",
+        "description": "宠物互动产出体力，让养成行为反哺玩法"
+      },
+      {
+        "from": "daily_task",
+        "to": "prop",
+        "description": "每日任务奖励道具，形成日常循环"
+      }
+    ]
+  },
+  "notes": "完整版含 14 个皮肤（chapter/boss/event/petMaterial 四类解锁条件）与升级曲线，此处保留结构与元留存挂钩。"
+}
